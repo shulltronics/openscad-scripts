@@ -25,9 +25,9 @@ PCB_RADIUS = 2.5;
 // Enclosure body
 module body() {
     difference() {
-        translate([0, 0, _DELTA])
+        translate([-(MARGIN + WALL_THICKNESS), -(MARGIN + WALL_THICKNESS), _DELTA])
             roundedcube([ENC_X_OUTER, ENC_Y_OUTER, PCB_Z], radius=PCB_RADIUS, apply_to="z");
-        translate([WALL_THICKNESS, WALL_THICKNESS, 0])
+        translate([-MARGIN, -MARGIN, 0])
             roundedcube([ENC_X_INNER, ENC_Y_INNER, PCB_Z-WALL_THICKNESS], radius=PCB_RADIUS, apply_to="z");
     }
 }
