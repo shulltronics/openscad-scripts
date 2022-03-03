@@ -19,7 +19,7 @@ ENC_X_OUTER = PCB_X + 2*(MARGIN + WALL_THICKNESS);
 PCB_Y = 90;
 ENC_Y_INNER = PCB_Y + 2*MARGIN;
 ENC_Y_OUTER = PCB_Y + 2*(MARGIN + WALL_THICKNESS);
-PCB_Z = 15;
+PCB_Z = 20;
 PCB_RADIUS = 2.5;
 
 // Enclosure body
@@ -35,32 +35,52 @@ module body() {
 // Top cutouts
 //  This is for the stackable featherwing
 //  TODO: make sure this is right
-feather_x_offset = 5.08;
+feather_x_offset = 0;
 feather_y_offset = 12.7;
-feather_x        = 43.18;
-feather_y        = 24.13;
+feather_x        = 51.2;
+feather_y        = 23.4;
+feather_r        = 2.5;
 //  For the 3 buttons
-button1_x_offset = 50;
-button1_y_offset = 15;
+button1_x_offset = 54.2;
+button1_y_offset = 13.6;
 button1_x        = 5.08;
 button1_y        = 5.08;
-button2_x_offset = 56;
-button2_y_offset = 15;
+button2_x_offset = 61.8;
+button2_y_offset = 13.6;
 button2_x        = 5.08;
 button2_y        = 5.08;
-button3_x_offset = 62;
-button3_y_offset = 15;
+button3_x_offset = 69.4;
+button3_y_offset = 13.6;
 button3_x        = 5.08;
 button3_y        = 5.08;
+button_r         = 1;
 //  For the LCD
-lcd_x            = 74.6;
-lcd_y            = 45;
+lcd_x            = 64;
+lcd_y            = 36.5;
 lcd_x_offset     = (PCB_X - lcd_x)/2;
-lcd_y_offset     = 42.54;
+lcd_y_offset     = 47.2;
 
-module top_cutout(x_off=0, y_off=0, x=1, y=1) {
+module top_cutout(x_off=0, y_off=0, x=1, y=1, _radius=0) {
     translate([x_off, y_off, PCB_Z-WALL_THICKNESS-_DELTA])
-        cube([x, y, WALL_THICKNESS+(3*_DELTA)]);
+        if (_radius == 0) {
+            cube([x, y, WALL_THICKNESS+(3*_DELTA)]);
+        } else {
+            roundedcube([x, y, WALL_THICKNESS+(3*_DELTA)], radius=_radius, apply_to="z");
+        }
+}
+
+// Create a cutout on the left side of width y and height h,
+// offset from PCB lower left by y.
+module left_cutout(y_off, y, h) {
+    translate([-WALL_THICKNESS-MARGIN-_DELTA, y_off - y/2, PCB_Z - h +2*_DELTA])
+        cube([WALL_THICKNESS+2*MARGIN, y, h]);
+}
+
+// Make a mounting hole with specified radius, with the center offset from
+// PCB lower left by specified amount
+module mounting_hole(x_center_off, y_center_off, radius=1.5) {
+    translate([x_center_off, y_center_off, PCB_Z-(WALL_THICKNESS/2)-_DELTA])
+        cylinder(2*WALL_THICKNESS+(2*_DELTA), r=radius, center=true);
 }
 
 // TODO: make the lower left of the PCB be at the origin,
@@ -70,9 +90,12 @@ module top_cutout(x_off=0, y_off=0, x=1, y=1) {
 // Main model
 difference() {
     body();
-    top_cutout(feather_x_offset, feather_y_offset, feather_x, feather_y);
-    top_cutout(button1_x_offset, button1_y_offset, button1_x, button1_y);
-    top_cutout(button2_x_offset, button2_y_offset, button2_x, button2_y);
-    top_cutout(button3_x_offset, button3_y_offset, button3_x, button3_y);
-    top_cutout(lcd_x_offset, lcd_y_offset, lcd_x, lcd_y);
+    top_cutout(feather_x_offset, feather_y_offset, feather_x, feather_y, _radius=feather_r);
+    left_cutout(feather_y_offset+(feather_y/2), 10, 3.81);
+    top_cutout(button1_x_offset, button1_y_offset, button1_x, button1_y, _radius=button_r);
+    top_cutout(button2_x_offset, button2_y_offset, button2_x, button2_y, _radius=button_r);
+    top_cutout(button3_x_offset, button3_y_offset, button3_x, button3_y, _radius=button_r);
+    top_cutout(lcd_x_offset, lcd_y_offset, lcd_x, lcd_y, _radius=1);
+    mounting_hole(3.81, 3.81);
+    mounting_hole(PCB_X-3.81, 3.81);
 }
